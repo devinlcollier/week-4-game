@@ -1,0 +1,19 @@
+body{
+	background-image: url("../images/background.jpg");
+}
+
+.entity{
+	padding: 6px;
+	border: 2px lightgreen solid;
+	background-color: white;
+}
+
+.entity-title {
+	font-size: 18px;
+	text-align: center;;
+}
+
+.game-title {
+	font-size: 34px;
+	color: lightblue;
+}
