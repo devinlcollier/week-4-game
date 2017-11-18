@@ -5,15 +5,13 @@ class Entity {
 		this.name = name;
 		this.health = health;
 		this.maxHealth = health;
-		this.isPlayer = false;
-		this.isDefender = false;
 		this.baseAttack = baseAttack;
 		this.attack = this.baseAttack;
 
 		this.element.addClass("col-lg-1 entity");
 		this.element.attr("data-name", this.name);
 
-		this.element.append("<h2 class=\"entity-title\">" + health + "</h2>");
+		this.element.append("<h2 id=\"health\" class=\"entity-title\">" + health + "</h2>");
 
 		var image = $("<img>");
 		image.attr("src", sprite);
@@ -30,12 +28,10 @@ class Entity {
 	{
 		if(this.element.parent().attr("id") === "entities")
 		{	
-			this.isPlayer = true;
 			game.startGame(this);
 		}
-		else if(this.element.parent().attr("id") === "enemies")
+		 if(this.element.parent().attr("id") === "enemies")
 		{
-			this.isDefender = true;
 			game.setDefender(this);
 		}
 	}
@@ -45,12 +41,15 @@ class Entity {
 		parent.append(this.element);
 	}
 
+	update()
+	{
+		this.element.children("#health").text(this.health);
+	}
+
 	reset()
 	{
-		this.isPlayer = false;
-		this.isDefender = false;
 		this.attack = this.baseAttack;
-		this.maxHealth = health;
+		this.health = this.maxHealth;
 	}
 }
 
@@ -58,33 +57,84 @@ var game = {
 	entities: [],
 	player: null,
 	defender: null,
+	enemies: 0,
 
 	newGame: function(){
 		for(var i = 0; i < game.entities.length; i++)
 		{
+			game.enemies = 0;
+			game.player = null;
+			game.defender = null;
+			game.entities[i].reset();
+			game.entities[i].update();
 			game.entities[i].show($("#entities"));
 		}
 	},
 
 	startGame: function(Entity){
-		$("#entities").empty();
-
 		game.player = Entity;
+		game.player.element.detach();
 		game.player.show($("#player"));
-
+		game.enemies = game.entities.length - 1;
+		console.log(game.enemies);
 		for(var i = 0; i < game.entities.length; i++)
 		{
-			//game.entities[i].show($("#entities"));
+			if(game.entities[i] !== game.player)
+			{
+				game.entities[i].element.detach();
+				game.entities[i].show($("#enemies"));
+			}
 		}
 	},
 
-	setDefender: function(element){
-
+	setDefender: function(Entity){
+		if(game.defender === null)
+		{
+			game.defender = Entity;
+			game.defender.element.detach();
+			game.defender.show($("#defender"));
+		}
 	},
 
 	attack: function()
 	{
+		if(game.player !== null && game.defender !== null)
+		{
+			game.defender.health -= game.player.attack;
+			game.player.health -= game.defender.attack;
 
+			$("#message1").text(game.player.name + " did " + game.player.attack + " damage to " + game.defender.name);
+			$("#message2").text(game.defender.name + " did " + game.defender.attack + " damage to " + game.player.name);
+
+			game.player.update();
+			game.defender.update();
+
+			game.player.attack += Math.round(game.player.baseAttack/2);
+
+			if(game.defender.health <= 0)
+			{
+				game.defender.element.detach();
+				game.defender = null;
+				game.enemies--;
+				if(game.enemies === 0)
+				{
+					$("#message1").text("You Won!");
+					$("#message2").text("Play Again");
+					setTimeout(function(){
+					game.newGame();
+					}, 2000);
+				}
+				console.log(game.enemies);
+			}
+			else if(game.player.health <= 0)
+			{
+				$("#message1").text("You Lost");
+				$("#message2").text("Try Again");
+				setTimeout(function(){
+					game.newGame();
+				}, 2000);
+			}
+		}
 	}
 };
 
